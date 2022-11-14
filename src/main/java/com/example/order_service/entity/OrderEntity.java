@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Order {
+public class OrderEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,4 +24,7 @@ public class Order {
     private Double price;
     private String imageUrl;
     private String address;
+    private String addressType;
+    private String recipientName;
+    private String recipientPhoneNumber;
 }

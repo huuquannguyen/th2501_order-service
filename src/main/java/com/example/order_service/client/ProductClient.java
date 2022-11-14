@@ -34,14 +34,13 @@ public class ProductClient extends ProviderClient{
 
     @Override
     protected void configDefaultParams() {
-
     }
 
     public Product getProduct(Long productId) throws ApiException {
         ApiResponse<?> response = this.sendGet(productEndpoint + "/products/" + productId, ApiResponse.class);
         if(response.getResponseCode() != 200){
             log.info("Get product failed with id {}", productId);
-            throw new ApiException(ErrorCode.UNKNOWN_ERROR.getCode(), "Get product failed");
+            throw new ApiException(response.getErrorCode(), response.getMessage().toString());
         }
         var result = response.getResult();
         try{
