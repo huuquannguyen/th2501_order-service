@@ -13,6 +13,7 @@ public class Size {
     private Long id;
     private Product product;
     private String size;
+    private String color;
     private int quantity;
     private int inStore;
 }

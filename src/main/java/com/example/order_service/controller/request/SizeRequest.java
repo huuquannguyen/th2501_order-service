@@ -1,5 +1,6 @@
 package com.example.order_service.controller.request;
 
+import com.example.order_service.controller.request.constant.Color;
 import com.example.order_service.controller.request.constant.SizeCharacter;
 import com.example.order_service.controller.request.constant.SizeNumber;
 import com.example.order_service.validation.annotation.SizeConstraint;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
@@ -21,4 +23,7 @@ public class SizeRequest {
     private Integer sizeNumber;
 
     private SizeCharacter sizeCharacter;
+
+    @NotNull(message = "Color can not be null")
+    private Color color;
 }

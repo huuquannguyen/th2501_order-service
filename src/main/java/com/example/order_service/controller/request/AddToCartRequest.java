@@ -8,12 +8,13 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class AddToCartRequest {
-    @NotBlank(message = "Product id cannot be blank")
+    @NotNull(message = "Product id cannot be null")
     private Long productId;
     @Valid
     private SizeRequest sizeRequest;

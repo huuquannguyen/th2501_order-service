@@ -28,10 +28,9 @@ public class AddressRequest {
 
     @Override
     public String toString() {
-        return "{state='" + state + '\'' +
+        return "state='" + state + '\'' +
                 ", province='" + province + '\'' +
                 ", street='" + street + '\'' +
-                ", moreDetail='" + moreDetail + '\'' +
-                '}';
+                ", moreDetail='" + moreDetail + '\'';
     }
 }

@@ -5,6 +5,8 @@ import lombok.Getter;
 @Getter
 public enum ErrorCode {
 
+    VALIDATION_ERROR("VALIDATION_ERROR", ""),
+
     ORDER_NOT_EXIST("ORDER_NOT_EXIST", "Order is not exist"),
 
     SIZE_NOT_ENOUGH("SIZE_NOT_ENOUGH", "This size for the product doesn't have enought quantity"),
