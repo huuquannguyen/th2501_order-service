@@ -6,20 +6,17 @@ import com.example.order_service.client.response.Size;
 import com.example.order_service.constant.ErrorCode;
 import com.example.order_service.constant.OrderStatus;
 import com.example.order_service.controller.request.AddToCartRequest;
-import com.example.order_service.controller.request.PlaceOrderRequest;
 import com.example.order_service.controller.request.SizeRequest;
-import com.example.order_service.entity.OrderEntity;
 import com.example.order_service.entity.OrderLine;
 import com.example.order_service.exception.ApiException;
+import com.example.order_service.model.ApiResponse;
 import com.example.order_service.repository.OrderLineRepository;
-import com.example.order_service.repository.OrderRepository;
 import com.example.order_service.service.OrderLineService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,12 +30,15 @@ public class OrderLineServiceImpl implements OrderLineService {
 
     private final OrderLineRepository orderLineRepository;
 
+    private final ObjectMapper mapper;
+
     @Override
     public OrderLine addToCart(AddToCartRequest request) throws ApiException {
-        Product product = productClient.getProduct(request.getProductId());
-        if (product == null){
+        ApiResponse<Product> response = productClient.getProduct(request.getProductId());
+        if (response.getResult() == null) {
             throw new ApiException(ErrorCode.PRODUCT_NOT_FOUND);
         }
+        Product product = mapper.convertValue(response.getResult(), Product.class);
         String requestSize = getSizeFromRequest(request.getSizeRequest());
         checkSize(product.getSizes(), requestSize, request.getSizeRequest().getColor().getColor(), 1);
         OrderLine order = new OrderLine();
