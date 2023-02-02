@@ -37,7 +37,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderEntity placeOrder(PlaceOrderRequest request) throws ApiException {
+    public OrderEntity placeOrder(PlaceOrderRequest request, String token) throws ApiException {
 
         OrderEntity orderEntity = new OrderEntity();
         orderEntity.setAddress(request.getRecipientInformation().getAddress().toString());
@@ -53,7 +53,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new ApiException(ErrorCode.ORDER_NOT_EXIST);
             }
             OrderLine order = optional.get();
-            ApiResponse<Product> response = productClient.getProduct(order.getProductId());
+            ApiResponse<Product> response = productClient.getProduct(order.getProductId(), token);
             if (response.getResult() == null) {
                 throw new ApiException(ErrorCode.PRODUCT_NOT_FOUND);
             }

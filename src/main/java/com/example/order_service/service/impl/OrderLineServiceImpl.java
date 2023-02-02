@@ -13,13 +13,20 @@ import com.example.order_service.model.ApiResponse;
 import com.example.order_service.repository.OrderLineRepository;
 import com.example.order_service.service.OrderLineService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.resilience4j.bulkhead.annotation.Bulkhead;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +40,12 @@ public class OrderLineServiceImpl implements OrderLineService {
     private final ObjectMapper mapper;
 
     @Override
-    public OrderLine addToCart(AddToCartRequest request) throws ApiException {
-        ApiResponse<Product> response = productClient.getProduct(request.getProductId());
+//    @CircuitBreaker(name = "productService", fallbackMethod = "addToCartFallback")
+//    @Bulkhead(name="bulkheadProductService", fallbackMethod = "addToCartFallback", type = Bulkhead.Type.THREADPOOL)
+//    @Retry(name = "retryProductService", fallbackMethod = "addToCartFallback")
+//    @RateLimiter(name = "rateLimiterProductService", fallbackMethod = "addToCartFallback")
+    public OrderLine addToCart(AddToCartRequest request, String token) throws ApiException {
+        ApiResponse<Product> response = productClient.getProduct(request.getProductId(), token);
         if (response.getResult() == null) {
             throw new ApiException(ErrorCode.PRODUCT_NOT_FOUND);
         }
@@ -74,4 +85,10 @@ public class OrderLineServiceImpl implements OrderLineService {
         return Objects.isNull(request.getSizeCharacter()) ? String.valueOf(request.getSizeNumber()) :
                 request.getSizeCharacter().getCode();
     }
+
+    private OrderLine addToCartFallback(AddToCartRequest request, Throwable throwable){
+        log.error("Add to cart failed with fallback");
+        return null;
+    }
+
 }

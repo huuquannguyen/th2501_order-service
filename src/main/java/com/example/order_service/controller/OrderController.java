@@ -9,10 +9,9 @@ import com.example.order_service.model.ApiResponse;
 import com.example.order_service.service.OrderLineService;
 import com.example.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -26,13 +25,16 @@ public class OrderController {
     private final OrderLineService orderLineService;
 
     @PostMapping("/addToCart")
-    public ApiResponse<OrderLine> addProductToCart(@Valid @RequestBody AddToCartRequest request) throws ApiException {
-        return ApiResponse.successWithResult(orderLineService.addToCart(request));
+    @PreAuthorize(value = "hasRole('user')")
+    public ApiResponse<OrderLine> addProductToCart(@Valid @RequestBody AddToCartRequest request,
+                                                   @RequestHeader(value = "Authorization") String token) throws ApiException {
+        return ApiResponse.successWithResult(orderLineService.addToCart(request, token));
     }
 
     @PostMapping("/place")
-    public ApiResponse<OrderEntity> orderProduct(@Valid @RequestBody PlaceOrderRequest request) throws ApiException {
-        return ApiResponse.successWithResult(orderService.placeOrder(request));
+    public ApiResponse<OrderEntity> orderProduct(@Valid @RequestBody PlaceOrderRequest request,
+                                                 @RequestHeader(value = "Authorization") String token) throws ApiException {
+        return ApiResponse.successWithResult(orderService.placeOrder(request, token));
     }
 
 }

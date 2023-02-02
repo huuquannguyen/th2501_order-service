@@ -3,5 +3,57 @@ spring:
     name: order-service
   config:
     import: optional:configserver:http://localhost:8071
+
+#todo: move to config server
+
 server:
   port: 8081
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      productService:
+        registerHealthIndicator: true
+        ringBufferSizeInClosedState: 10
+        ringBufferSizeInHalfOpenState: 6
+        waitDurationInOpenState: 30s
+        failureRateThreshold: 50
+#        recordExceptions:
+#          - src/main/java/com/example/order_service/exception/ApiException.java
+  bulkhead:
+    instances:
+      bulkheadProductService:
+        maxWaitDuration: 10ms  # Sets the maximum amount of time to block a thread when entering a bulkhead. The default value is 0.
+        maxConcurrentCalls: 20  # Sets the maximum number of concurrent calls allowed by the bulkhead. The default value is 25.
+  thread-pool-bulkhead:
+    instances:
+      bulkheadProductService:
+        maxThreadPoolSize: 1  # Sets the maximum thread pool size. The default value is Runtime.getRuntime().availableProcessors().
+        coreThreadPoolSize: 1  # Sets the core thread pool size. The default value is Runtime.getRuntime().availableProcessors().
+        queueCapacity: 1  # Sets the capacity of the queue. The default value is 100
+        keepAliveDuration: 20ms  # Sets the maximum time that idle threads will wait for new tasks before terminating.
+        #  This happens when the number of threads is higher than the number of core threads. The default value is 20 ms.
+  retry:
+    instances:
+      retryProductService:
+        maxRetryAttemps: 5
+        waitDuration: 10000
+        retry-exceptions:
+          - java.util.concurrent.TimeoutException
+  ratelimiter:
+    instances:
+      rateLimiterProductService:
+        timeoutDuration: 1000ms  # Defines the time a thread waits for permission
+        limitRefreshPeriod: 5000  # Defines the period of a limit refresh
+        limitForPeriod: 5  # Defines the number of permissions available during a limit refresh period
+
+#keycloak config
+keycloak:
+  realm: th2501-project
+  auth-server-url: http://localhost:8880
+  ssl-required: external
+  resource: clothes-store
+  credentials:
+    secret: eduiOHykhrRGmlUlC9xa5LgHxrV2bBYD
+  use-resource-role-mappings: false
+  bearer-only: true
