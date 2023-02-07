@@ -40,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderEntity placeOrder(PlaceOrderRequest request, String token) throws ApiException {
 
         OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setUserId(request.getUserId());
         orderEntity.setAddress(request.getRecipientInformation().getAddress().toString());
         orderEntity.setRecipientName(request.getRecipientInformation().getName());
         orderEntity.setAddressType(request.getRecipientInformation().getAddress().getAddressType().getType());

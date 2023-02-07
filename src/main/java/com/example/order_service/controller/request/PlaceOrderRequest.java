@@ -13,6 +13,8 @@ import java.util.List;
 @NoArgsConstructor
 public class PlaceOrderRequest {
 
+    private String userId;
+
     @NotNull(message = "Order ids cannot be blank")
     private List<Long> orderIds;
 

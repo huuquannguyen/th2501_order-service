@@ -60,6 +60,7 @@ public class OrderLineServiceImpl implements OrderLineService {
         order.setImageUrl(product.getImageUrl());
         order.setStatus(OrderStatus.IN_CART);
         order.setSize(requestSize);
+        order.setUserId(request.getUserId());
         OrderLine ordered = orderLineRepository.save(order);
         log.info("Add product id = {} to cart", ordered.getProductId());
         return ordered;

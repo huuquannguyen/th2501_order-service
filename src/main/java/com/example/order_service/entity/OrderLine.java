@@ -16,6 +16,8 @@ public class OrderLine {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String userId;
+
     @ManyToOne
     @JsonIgnore
     private OrderEntity order;

@@ -14,6 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,13 +28,17 @@ public class OrderController {
     @PostMapping("/addToCart")
     @PreAuthorize(value = "hasRole('user')")
     public ApiResponse<OrderLine> addProductToCart(@Valid @RequestBody AddToCartRequest request,
-                                                   @RequestHeader(value = "Authorization") String token) throws ApiException {
+                                                   @RequestHeader(value = "Authorization") String token,
+                                                   Principal principal) throws ApiException {
+        request.setUserId(principal.getName());
         return ApiResponse.successWithResult(orderLineService.addToCart(request, token));
     }
 
     @PostMapping("/place")
     public ApiResponse<OrderEntity> orderProduct(@Valid @RequestBody PlaceOrderRequest request,
-                                                 @RequestHeader(value = "Authorization") String token) throws ApiException {
+                                                 @RequestHeader(value = "Authorization") String token,
+                                                 Principal principal) throws ApiException {
+        request.setUserId(principal.getName());
         return ApiResponse.successWithResult(orderService.placeOrder(request, token));
     }
 
