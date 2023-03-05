@@ -3,7 +3,20 @@ spring:
     name: order-service
   config:
     import: optional:configserver:http://localhost:8071
-
+  jpa:
+    hibernate:
+      ddl-auto: update
+  #kafka config
+  cloud:
+    stream:
+      bindings:
+        output:
+          destination: productTopic
+          content-type: application/json
+      kafka:
+        binder:
+          brokers: localhost
+          autoCreateTopics: true
 #todo: move to config server
 
 server:

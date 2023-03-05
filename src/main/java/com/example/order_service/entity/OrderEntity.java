@@ -29,4 +29,8 @@ public class OrderEntity {
     private String recipientName;
 
     private String recipientPhoneNumber;
+
+    private boolean isPaid;
+
+    private String status;
 }

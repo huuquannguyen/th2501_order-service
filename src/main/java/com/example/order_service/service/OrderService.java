@@ -6,6 +6,8 @@ import com.example.order_service.exception.ApiException;
 
 public interface OrderService {
 
-    OrderEntity placeOrder(PlaceOrderRequest request,String token) throws ApiException;
+    OrderEntity placeOrder(PlaceOrderRequest request, String token) throws ApiException;
+
+    OrderEntity cancelOrder(Long orderId) throws ApiException;
 
 }

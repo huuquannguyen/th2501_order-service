@@ -7,6 +7,7 @@ import com.example.order_service.constant.OrderStatus;
 import com.example.order_service.controller.request.PlaceOrderRequest;
 import com.example.order_service.entity.OrderEntity;
 import com.example.order_service.entity.OrderLine;
+import com.example.order_service.event.OrderProductEvent;
 import com.example.order_service.exception.ApiException;
 import com.example.order_service.model.ApiResponse;
 import com.example.order_service.repository.OrderLineRepository;
@@ -15,12 +16,15 @@ import com.example.order_service.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.cloud.stream.messaging.Source;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +39,10 @@ public class OrderServiceImpl implements OrderService {
 
     private final ObjectMapper mapper;
 
+    private final Source source;
+
+    private final String SERVICE_NAME = "order-service";
+
     @Override
     @Transactional
     public OrderEntity placeOrder(PlaceOrderRequest request, String token) throws ApiException {
@@ -46,28 +54,53 @@ public class OrderServiceImpl implements OrderService {
         orderEntity.setAddressType(request.getRecipientInformation().getAddress().getAddressType().getType());
         orderEntity.setRecipientPhoneNumber(request.getRecipientInformation().getPhoneNumber());
 
-        List<OrderLine> selectedOrder = new ArrayList<>();
-        for (Long orderId: request.getOrderIds()) {
-            Optional<OrderLine> optional = orderLineRepository.findByIdAndStatusEquals(orderId, OrderStatus.IN_CART);
+        List<OrderLine> selectedOrderLines = new ArrayList<>();
+        for (Long orderLineId : request.getOrderLineIds()) {
+            Optional<OrderLine> optional = orderLineRepository.findByIdAndInCartEquals(orderLineId, true);
             if (optional.isEmpty()) {
-                log.error("Order with id {} is not exist", orderId);
+                log.error("Order with id {} is not exist", orderLineId);
                 throw new ApiException(ErrorCode.ORDER_NOT_EXIST);
             }
-            OrderLine order = optional.get();
-            ApiResponse<Product> response = productClient.getProduct(order.getProductId(), token);
+            OrderLine orderLine = optional.get();
+            ApiResponse<Product> response = productClient.getProduct(orderLine.getProductId(), token);
             if (response.getResult() == null) {
                 throw new ApiException(ErrorCode.PRODUCT_NOT_FOUND);
             }
             Product product = mapper.convertValue(response.getResult(), Product.class);
-            OrderLineServiceImpl.checkSize(product.getSizes(), order.getSize(), order.getColor(), order.getQuantity());
-            order.setStatus(OrderStatus.ORDERED);
-            order.setOrder(orderEntity);
-            selectedOrder.add(order);
+            OrderLineServiceImpl.checkSize(product.getSizes(), orderLine.getSize(), orderLine.getColor(), orderLine.getQuantity());
+            orderLine.setInCart(false);
+            orderLine.setOrder(orderEntity);
+            selectedOrderLines.add(orderLine);
         }
 
-        orderEntity.setOrderLines(selectedOrder);
+        orderEntity.setPaid(checkPaid());
+        orderEntity.setOrderLines(selectedOrderLines);
+        orderEntity.setStatus(OrderStatus.ORDERED);
         OrderEntity successOrder = orderRepository.save(orderEntity);
-        log.info("Place order id = {} successfully", successOrder.getOrderLines().stream().map(OrderLine::getId));
+        OrderProductEvent orderProductEvent = new OrderProductEvent(SERVICE_NAME, OrderProductEvent.PLACE_ORDER_EVENT, successOrder.getOrderLines());
+        source.output().send(MessageBuilder.withPayload(orderProductEvent).build());
+        log.info("Place order id = {} successfully", successOrder.getOrderLines().stream().map(OrderLine::getId).collect(Collectors.toList()));
         return successOrder;
+    }
+
+    @Override
+    public OrderEntity cancelOrder(Long orderId) throws ApiException {
+        Optional<OrderEntity> optional = orderRepository.findById(orderId);
+        if (optional.isEmpty()) {
+            throw new ApiException(ErrorCode.ORDER_NOT_EXIST);
+        }
+        OrderEntity order = optional.get();
+        if (!order.getStatus().equals(OrderStatus.ORDERED)) {
+            throw new ApiException(ErrorCode.CANCEL_ORDER_ERROR);
+        }
+        order.setStatus(OrderStatus.CANCELED);
+        var canceledOrder = orderRepository.save(order);
+        OrderProductEvent orderProductEvent = new OrderProductEvent(SERVICE_NAME, OrderProductEvent.CANCEL_ORDER_EVENT, canceledOrder.getOrderLines());
+        source.output().send(MessageBuilder.withPayload(orderProductEvent).build());
+        return canceledOrder;
+    }
+
+    private boolean checkPaid() {
+        return true;
     }
 }

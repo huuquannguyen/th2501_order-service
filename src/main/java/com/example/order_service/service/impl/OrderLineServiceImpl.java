@@ -4,7 +4,6 @@ import com.example.order_service.client.ProductClient;
 import com.example.order_service.client.response.Product;
 import com.example.order_service.client.response.Size;
 import com.example.order_service.constant.ErrorCode;
-import com.example.order_service.constant.OrderStatus;
 import com.example.order_service.controller.request.AddToCartRequest;
 import com.example.order_service.controller.request.SizeRequest;
 import com.example.order_service.entity.OrderLine;
@@ -13,20 +12,13 @@ import com.example.order_service.model.ApiResponse;
 import com.example.order_service.repository.OrderLineRepository;
 import com.example.order_service.service.OrderLineService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.resilience4j.bulkhead.annotation.Bulkhead;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
-import io.github.resilience4j.retry.annotation.Retry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -58,7 +50,7 @@ public class OrderLineServiceImpl implements OrderLineService {
         order.setColor(request.getSizeRequest().getColor().getColor());
         order.setQuantity(1);
         order.setImageUrl(product.getImageUrl());
-        order.setStatus(OrderStatus.IN_CART);
+        order.setInCart(true);
         order.setSize(requestSize);
         order.setUserId(request.getUserId());
         OrderLine ordered = orderLineRepository.save(order);

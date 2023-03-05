@@ -5,6 +5,8 @@ import lombok.Getter;
 @Getter
 public enum ErrorCode {
 
+    CANCEL_ORDER_ERROR("CANCEL_ORDER_ERROR", "The status of the order doesn't allow to cancel"),
+
     VALIDATION_ERROR("VALIDATION_ERROR", ""),
 
     ORDER_NOT_EXIST("ORDER_NOT_EXIST", "Order is not exist"),

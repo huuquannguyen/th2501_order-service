@@ -22,9 +22,9 @@ public class OrderLine {
     @JsonIgnore
     private OrderEntity order;
 
-    private String status;
-
     private Long productId;
+
+    private boolean inCart;
 
     private Integer quantity;
 

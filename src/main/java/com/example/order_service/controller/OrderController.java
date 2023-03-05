@@ -10,7 +10,6 @@ import com.example.order_service.service.OrderLineService;
 import com.example.order_service.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -40,6 +39,11 @@ public class OrderController {
                                                  Principal principal) throws ApiException {
         request.setUserId(principal.getName());
         return ApiResponse.successWithResult(orderService.placeOrder(request, token));
+    }
+
+    @PutMapping("/cancel/{id}")
+    public ApiResponse<OrderEntity> cancelOrder(@PathVariable(name = "id") Long orderId) throws ApiException {
+        return ApiResponse.successWithResult(orderService.cancelOrder(orderId));
     }
 
 }
