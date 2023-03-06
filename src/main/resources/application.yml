@@ -10,7 +10,7 @@ spring:
   cloud:
     stream:
       bindings:
-        output:
+        orderEvent-out-0:
           destination: productTopic
           content-type: application/json
       kafka:

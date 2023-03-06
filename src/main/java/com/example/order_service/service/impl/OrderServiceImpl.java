@@ -16,8 +16,7 @@ import com.example.order_service.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.cloud.stream.messaging.Source;
-import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,7 +38,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final ObjectMapper mapper;
 
-    private final Source source;
+    private final StreamBridge streamBridge;
 
     private final String SERVICE_NAME = "order-service";
 
@@ -78,7 +77,7 @@ public class OrderServiceImpl implements OrderService {
         orderEntity.setStatus(OrderStatus.ORDERED);
         OrderEntity successOrder = orderRepository.save(orderEntity);
         OrderProductEvent orderProductEvent = new OrderProductEvent(SERVICE_NAME, OrderProductEvent.PLACE_ORDER_EVENT, successOrder.getOrderLines());
-        source.output().send(MessageBuilder.withPayload(orderProductEvent).build());
+        streamBridge.send("orderEvent-out-0", orderProductEvent);
         log.info("Place order id = {} successfully", successOrder.getOrderLines().stream().map(OrderLine::getId).collect(Collectors.toList()));
         return successOrder;
     }
@@ -96,7 +95,8 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.CANCELED);
         var canceledOrder = orderRepository.save(order);
         OrderProductEvent orderProductEvent = new OrderProductEvent(SERVICE_NAME, OrderProductEvent.CANCEL_ORDER_EVENT, canceledOrder.getOrderLines());
-        source.output().send(MessageBuilder.withPayload(orderProductEvent).build());
+        streamBridge.send("orderEvent-out-0", orderProductEvent);
+        log.info("Cancel order with id = {} successfully", orderId);
         return canceledOrder;
     }
 
